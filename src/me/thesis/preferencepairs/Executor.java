@@ -8,6 +8,7 @@ import java.util.ArrayList;
 
 import me.thesis.preferencepairs.beans.Business;
 import me.thesis.preferencepairs.beans.Review;
+import me.thesis.preferencepairs.beans.User;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -15,6 +16,7 @@ public class Executor {
 	private static ObjectMapper mapper = new ObjectMapper();
 	private static ArrayList<Business> businesses = new ArrayList<Business>();
 	private static ArrayList<Review> reviews = new ArrayList<Review>();
+	private static ArrayList<User> users = new ArrayList<User>();
 
 	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
@@ -25,9 +27,10 @@ public class Executor {
 		File reviewFile = new File(
 				"/Users/bearcatmobile/Desktop/Thesis/Data Sets/yelp-dataset/yelp_academic_dataset_review.json");
 
-		// parseBusinessJSON(businessFile);
+		parseBusinessJSON(businessFile);
 		parseReviewJSON(reviewFile);
-		printSize(reviews);
+		parseUserJSON(userFile);
+		printSize(users, businesses, reviews);
 	}
 
 	public static void parseBusinessJSON(File file) throws IOException {
@@ -52,8 +55,22 @@ public class Executor {
 		br.close();
 	}
 
+	public static void parseUserJSON(File file) throws IOException {
+		BufferedReader br = new BufferedReader(new FileReader(file));
+
+		String line = null;
+		while ((line = br.readLine()) != null) {
+			User user = mapper.readValue(line, User.class);
+			users.add(user);
+		}
+		br.close();
+	}
+
 	@SuppressWarnings("rawtypes")
-	public static void printSize(ArrayList list) {
-		System.out.println(list.size());
+	public static void printSize(ArrayList users, ArrayList businesses,
+			ArrayList reviews) {
+		System.out.println("Users: " + users.size());
+		System.out.println("Businesses: " + businesses.size());
+		System.out.println("Reviews: " + reviews.size());
 	}
 }

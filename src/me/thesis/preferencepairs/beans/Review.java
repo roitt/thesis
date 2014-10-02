@@ -68,16 +68,16 @@ public class Review {
 		return business_id;
 	}
 
-	public void setBusiness_id(String businessId) {
-		this.business_id = businessId;
+	public void setBusiness_id(String business_id) {
+		this.business_id = business_id;
 	}
 
 	public String getUser_id() {
 		return user_id;
 	}
 
-	public void setUser_id(String userId) {
-		this.user_id = userId;
+	public void setUser_id(String user_id) {
+		this.user_id = user_id;
 	}
 
 	public float getStars() {
@@ -104,11 +104,12 @@ public class Review {
 		this.date = date;
 	}
 
-	public Votes getVote() {
+	public Votes getVotes() {
 		return votes;
 	}
 
-	public void setVote(Votes votes) {
+	public void setVotes(Votes votes) {
 		this.votes = votes;
 	}
+
 }
