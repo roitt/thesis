@@ -1,19 +1,22 @@
 package me.thesis.preferencepairs.beans;
 
-import java.util.ArrayList;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Business {
 	private String type;
-	private String businessId;
+	private String business_id;
 	private String name;
-	private ArrayList<String> neighborhoods;
-	private String fullAddress;
+	private String[] neighborhoods;
+	private String full_address;
 	private String city;
 	private String state;
-	private long latitude;
-	private long longitude;
+	private double latitude;
+	private double longitude;
 	private float stars;
-	private int reviewCount;
+	private int review_count;
+	private String[] categories;
+	private boolean open;
 
 	public String getType() {
 		return type;
@@ -23,12 +26,12 @@ public class Business {
 		this.type = type;
 	}
 
-	public String getBusinessId() {
-		return businessId;
+	public String getBusiness_id() {
+		return business_id;
 	}
 
-	public void setBusinessId(String businessId) {
-		this.businessId = businessId;
+	public void setBusiness_id(String business_id) {
+		this.business_id = business_id;
 	}
 
 	public String getName() {
@@ -39,20 +42,20 @@ public class Business {
 		this.name = name;
 	}
 
-	public ArrayList<String> getNeighborhoods() {
+	public String[] getNeighborhoods() {
 		return neighborhoods;
 	}
 
-	public void setNeighborhoods(ArrayList<String> neighborhoods) {
+	public void setNeighborhoods(String[] neighborhoods) {
 		this.neighborhoods = neighborhoods;
 	}
 
-	public String getFullAddress() {
-		return fullAddress;
+	public String getFull_address() {
+		return full_address;
 	}
 
-	public void setFullAddress(String fullAddress) {
-		this.fullAddress = fullAddress;
+	public void setFull_address(String full_address) {
+		this.full_address = full_address;
 	}
 
 	public String getCity() {
@@ -71,19 +74,19 @@ public class Business {
 		this.state = state;
 	}
 
-	public long getLatitude() {
+	public double getLatitude() {
 		return latitude;
 	}
 
-	public void setLatitude(long latitude) {
+	public void setLatitude(double latitude) {
 		this.latitude = latitude;
 	}
 
-	public long getLongitude() {
+	public double getLongitude() {
 		return longitude;
 	}
 
-	public void setLongitude(long longitude) {
+	public void setLongitude(double longitude) {
 		this.longitude = longitude;
 	}
 
@@ -95,11 +98,28 @@ public class Business {
 		this.stars = stars;
 	}
 
-	public int getReviewCount() {
-		return reviewCount;
+	public int getReview_count() {
+		return review_count;
 	}
 
-	public void setReviewCount(int reviewCount) {
-		this.reviewCount = reviewCount;
+	public void setReview_count(int review_count) {
+		this.review_count = review_count;
 	}
+
+	public String[] getCategories() {
+		return categories;
+	}
+
+	public void setCategories(String[] categories) {
+		this.categories = categories;
+	}
+
+	public boolean isOpen() {
+		return open;
+	}
+
+	public void setOpen(boolean open) {
+		this.open = open;
+	}
+
 }
