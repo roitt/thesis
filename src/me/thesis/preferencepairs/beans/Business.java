@@ -1,4 +1,4 @@
-package me.thesis.beans;
+package me.thesis.preferencepairs.beans;
 
 import java.util.ArrayList;
 
