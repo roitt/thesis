@@ -1,5 +1,7 @@
 package me.thesis.preferencepairs.beans;
 
+import java.util.ArrayList;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -14,6 +16,16 @@ public class User {
 	private Integer[] elite;
 	private String yelping_since;
 	private int fans;
+	private ArrayList<BusinessAndReview> reviewedBusinesses = new ArrayList<BusinessAndReview>();
+
+	public ArrayList<BusinessAndReview> getReviewedBusinesses() {
+		return reviewedBusinesses;
+	}
+
+	public void setReviewedBusinesses(
+			ArrayList<BusinessAndReview> reviewedBusinesses) {
+		this.reviewedBusinesses = reviewedBusinesses;
+	}
 
 	public class Votes {
 		int funny;
@@ -67,7 +79,7 @@ public class User {
 		return user_id;
 	}
 
-	public void setUser_d(String user_id) {
+	public void setUser_id(String user_id) {
 		this.user_id = user_id;
 	}
 
