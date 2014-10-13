@@ -17,6 +17,15 @@ public class User {
 	private String yelping_since;
 	private int fans;
 	private ArrayList<BusinessAndReview> reviewedBusinesses = new ArrayList<BusinessAndReview>();
+	private ArrayList<PreferencePair> preferencePairs = new ArrayList<PreferencePair>();
+
+	public ArrayList<PreferencePair> getPreferencePairs() {
+		return preferencePairs;
+	}
+
+	public void setPreferencePairs(ArrayList<PreferencePair> preferencePairs) {
+		this.preferencePairs = preferencePairs;
+	}
 
 	public ArrayList<BusinessAndReview> getReviewedBusinesses() {
 		return reviewedBusinesses;

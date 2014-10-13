@@ -12,9 +12,12 @@ import java.util.Map.Entry;
 
 import me.thesis.preferencepairs.beans.Business;
 import me.thesis.preferencepairs.beans.BusinessAndReview;
+import me.thesis.preferencepairs.beans.PreferencePair;
 import me.thesis.preferencepairs.beans.Review;
 import me.thesis.preferencepairs.beans.User;
 
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Executor {
@@ -32,6 +35,8 @@ public class Executor {
 		File reviewFile = new File(
 				"/Users/bearcatmobile/Desktop/Thesis/Data Sets/yelp-dataset/yelp_academic_dataset_review.json");
 
+		System.out.println("Parsing data ...");
+
 		parseBusinessJSON(businessFile);
 		parseReviewJSON(reviewFile);
 		parseUserJSON(userFile);
@@ -39,9 +44,46 @@ public class Executor {
 		System.out.println("Done gathering data.");
 		// printSize(users, businesses, reviews);
 
+		System.out.println("Getting reviewed businesses for every user ...");
+
 		// For each user get all businesses he/she reviewed
 		getReviewedBusinessesForEveryUser();
-		printUserReviewAndBusiness();
+		// printUserReviewAndBusiness();
+
+		System.out.println("Writing User data to JSON ...");
+		// For each user create pairs of businesses he/she reviewed
+		// createPairs();
+
+		// Print preference pairs
+		// printPreferencePairs();
+
+		// createJSONFromUserObjects();
+
+		System.out.println("Done.");
+	}
+
+	@SuppressWarnings("rawtypes")
+	public static void createJSONFromUserObjects() {
+		User[] array = new User[users.size()];
+		int i = 0;
+		Iterator it = users.entrySet().iterator();
+		while (it.hasNext()) {
+			Map.Entry pairs = (Map.Entry) it.next();
+			User user = (User) pairs.getValue();
+			array[i++] = user;
+		}
+
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			mapper.writeValue(
+					new File("/Users/bearcatmobile/Desktop/user.json"), array);
+		} catch (JsonGenerationException e) {
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static void parseBusinessJSON(File file) throws IOException {
@@ -91,6 +133,36 @@ public class Executor {
 		}
 	}
 
+	@SuppressWarnings("rawtypes")
+	public static void createPairs() {
+		ArrayList<BusinessAndReview> br;
+		ArrayList<PreferencePair> preferencePairs;
+		Iterator it = users.entrySet().iterator();
+		while (it.hasNext()) {
+			Map.Entry pairs = (Map.Entry) it.next();
+			User user = (User) pairs.getValue();
+			br = user.getReviewedBusinesses();
+			preferencePairs = new ArrayList<PreferencePair>();
+			if (br.size() > 0) {
+				if (br.size() == 1) {
+					PreferencePair pp = new PreferencePair();
+					pp.setMorePreferred(br.get(0));
+					preferencePairs.add(pp);
+				} else {
+					for (int i = 0; i < br.size() - 1; i++) {
+						for (int j = i + 1; j < br.size(); j++) {
+							PreferencePair pp = new PreferencePair();
+							pp.setMorePreferred(br.get(i));
+							pp.setLessPreferred(br.get(j));
+							preferencePairs.add(pp);
+						}
+					}
+				}
+			}
+			user.setPreferencePairs(preferencePairs);
+		}
+	}
+
 	public static void printUserReviewAndBusiness() {
 		Iterator<Entry<String, User>> it = users.entrySet().iterator();
 		while (it.hasNext()) {
@@ -103,7 +175,25 @@ public class Executor {
 						+ item.getReview().getStars() + ",");
 			}
 			System.out.println("]");
-			it.remove(); // avoids a ConcurrentModificationException
+		}
+	}
+
+	public static void printPreferencePairs() {
+		Iterator<Entry<String, User>> it = users.entrySet().iterator();
+		while (it.hasNext()) {
+			Map.Entry<String, User> user = (Map.Entry<String, User>) it.next();
+			ArrayList<PreferencePair> ppList = new ArrayList<PreferencePair>();
+			ppList = user.getValue().getPreferencePairs();
+			System.out.println("---------------------------"
+					+ user.getValue().getName() + "--------------------------");
+			for (PreferencePair item : ppList) {
+				System.out.println(item.getMorePreferred().getBusiness()
+						.getName()
+						+ "------------>"
+						+ item.getLessPreferred().getBusiness().getName());
+			}
+			System.out
+					.println("-----------------------------------------------------------");
 		}
 	}
 
