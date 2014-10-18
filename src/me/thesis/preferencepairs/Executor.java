@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -25,6 +26,9 @@ public class Executor {
 	private static HashMap<String, Business> businesses = new HashMap<String, Business>();
 	private static ArrayList<Review> reviews = new ArrayList<Review>();
 	private static HashMap<String, User> users = new HashMap<String, User>();
+
+	// private static HashMap<String, ArrayList<PreferencePair>> gpairs = new
+	// HashMap<String, ArrayList<PreferencePair>>();
 
 	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
@@ -49,16 +53,21 @@ public class Executor {
 		// For each user get all businesses he/she reviewed
 		getReviewedBusinessesForEveryUser();
 		// printUserReviewAndBusiness();
+		// reviews.clear();
+		// businesses.clear();
 
-		System.out.println("Writing User data to JSON ...");
+		System.out.println("Done");
+
+		// System.out.println("Creating preference pairs ...");
 		// For each user create pairs of businesses he/she reviewed
 		// createPairs();
-
+		// System.out.println("Done.");
 		// Print preference pairs
 		// printPreferencePairs();
-
 		// createJSONFromUserObjects();
 
+		System.out.println("Creating preference pairs for each user ...");
+		createJSONPreferencePairs();
 		System.out.println("Done.");
 	}
 
@@ -134,34 +143,89 @@ public class Executor {
 	}
 
 	@SuppressWarnings("rawtypes")
-	public static void createPairs() {
-		ArrayList<BusinessAndReview> br;
-		ArrayList<PreferencePair> preferencePairs;
+	public static void createJSONPreferencePairs() {
 		Iterator it = users.entrySet().iterator();
+		ArrayList<BusinessAndReview> br;
 		while (it.hasNext()) {
 			Map.Entry pairs = (Map.Entry) it.next();
 			User user = (User) pairs.getValue();
-			br = user.getReviewedBusinesses();
-			preferencePairs = new ArrayList<PreferencePair>();
-			if (br.size() > 0) {
-				if (br.size() == 1) {
-					PreferencePair pp = new PreferencePair();
-					pp.setMorePreferred(br.get(0));
-					preferencePairs.add(pp);
-				} else {
-					for (int i = 0; i < br.size() - 1; i++) {
-						for (int j = i + 1; j < br.size(); j++) {
-							PreferencePair pp = new PreferencePair();
-							pp.setMorePreferred(br.get(i));
-							pp.setLessPreferred(br.get(j));
-							preferencePairs.add(pp);
+			try {
+				PrintWriter writer = new PrintWriter(
+						"/Users/bearcatmobile/Desktop/Preference_Pairs/"
+								+ user.getUser_id() + ".json", "UTF-8");
+				writer.print("[");
+				// Get reviewed businesses
+				br = user.getReviewedBusinesses();
+
+				if (br.size() > 0) {
+					if (br.size() == 1) {
+						PreferencePair pp = new PreferencePair();
+						pp.setUserId(user.getUser_id());
+						pp.setMorePreferredBI(br.get(0).getBusiness()
+								.getBusiness_id());
+						writer.print(pp.toJSONObjectStringOne());
+					} else {
+						for (int i = 0; i < br.size() - 1; i++) {
+							for (int j = i + 1; j < br.size(); j++) {
+								PreferencePair pp = new PreferencePair();
+								pp.setUserId(user.getUser_id());
+								pp.setMorePreferredBI(br.get(i).getBusiness()
+										.getBusiness_id());
+								pp.setLessPreferredBI(br.get(j).getBusiness()
+										.getBusiness_id());
+								writer.print(pp.toJSONObjectStringTwo());
+								if (i != br.size() - 2)
+									writer.print(", ");
+							}
 						}
 					}
 				}
+
+				writer.print("]");
+				writer.close();
+			} catch (IOException ex) {
+				ex.printStackTrace();
 			}
-			user.setPreferencePairs(preferencePairs);
 		}
 	}
+
+	// @SuppressWarnings("rawtypes")
+	// public static void createPairs() {
+	// ArrayList<BusinessAndReview> br;
+	// // ArrayList<PreferencePair> preferencePairs;
+	// Iterator it = users.entrySet().iterator();
+	// while (it.hasNext()) {
+	// Map.Entry pairs = (Map.Entry) it.next();
+	// User user = (User) pairs.getValue();
+	// br = user.getReviewedBusinesses();
+	// // preferencePairs = new ArrayList<PreferencePair>();
+	// System.out.println("---------------------------" + user.getName()
+	// + "---------------------------");
+	// if (br.size() > 0) {
+	// if (br.size() == 1) {
+	// PreferencePair pp = new PreferencePair();
+	// pp.setMorePreferred(br.get(0));
+	// // preferencePairs.add(pp);
+	// System.out.println(pp.getMorePreferred());
+	// } else {
+	// for (int i = 0; i < br.size() - 1; i++) {
+	// for (int j = i + 1; j < br.size(); j++) {
+	// PreferencePair pp = new PreferencePair();
+	// pp.setMorePreferred(br.get(i));
+	// pp.setLessPreferred(br.get(j));
+	// // preferencePairs.add(pp);
+	// System.out.println(pp.getMorePreferred()
+	// .getBusiness().getName()
+	// + "----->"
+	// + pp.getLessPreferred().getBusiness()
+	// .getName());
+	// }
+	// }
+	// }
+	// }
+	// // gpairs.put(user.getUser_id(), preferencePairs);
+	// }
+	// }
 
 	public static void printUserReviewAndBusiness() {
 		Iterator<Entry<String, User>> it = users.entrySet().iterator();
@@ -178,24 +242,27 @@ public class Executor {
 		}
 	}
 
-	public static void printPreferencePairs() {
-		Iterator<Entry<String, User>> it = users.entrySet().iterator();
-		while (it.hasNext()) {
-			Map.Entry<String, User> user = (Map.Entry<String, User>) it.next();
-			ArrayList<PreferencePair> ppList = new ArrayList<PreferencePair>();
-			ppList = user.getValue().getPreferencePairs();
-			System.out.println("---------------------------"
-					+ user.getValue().getName() + "--------------------------");
-			for (PreferencePair item : ppList) {
-				System.out.println(item.getMorePreferred().getBusiness()
-						.getName()
-						+ "------------>"
-						+ item.getLessPreferred().getBusiness().getName());
-			}
-			System.out
-					.println("-----------------------------------------------------------");
-		}
-	}
+	// public static void printPreferencePairs() {
+	// Iterator<Entry<String, ArrayList<PreferencePair>>> it = gpairs
+	// .entrySet().iterator();
+	// while (it.hasNext()) {
+	// Map.Entry<String, ArrayList<PreferencePair>> pair = (Map.Entry<String,
+	// ArrayList<PreferencePair>>) it
+	// .next();
+	// ArrayList<PreferencePair> ppList = pair.getValue();
+	// System.out.println("---------------------------"
+	// + users.get(pair.getKey()).getName()
+	// + "--------------------------");
+	// for (PreferencePair item : ppList) {
+	// System.out.println(item.getMorePreferred().getBusiness()
+	// .getName()
+	// + "------------>"
+	// + item.getLessPreferred().getBusiness().getName());
+	// }
+	// System.out
+	// .println("-----------------------------------------------------------");
+	// }
+	// }
 
 	@SuppressWarnings("rawtypes")
 	public static void printSize(HashMap users, HashMap businesses,
