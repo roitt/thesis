@@ -169,10 +169,21 @@ public class Executor {
 							for (int j = i + 1; j < br.size(); j++) {
 								PreferencePair pp = new PreferencePair();
 								pp.setUserId(user.getUser_id());
-								pp.setMorePreferredBI(br.get(i).getBusiness()
-										.getBusiness_id());
-								pp.setLessPreferredBI(br.get(j).getBusiness()
-										.getBusiness_id());
+								if (br.get(i).getReview().getStars() > br
+										.get(j).getReview().getStars()) {
+									pp.setMorePreferredBI(br.get(i)
+											.getBusiness().getBusiness_id());
+									pp.setLessPreferredBI(br.get(j)
+											.getBusiness().getBusiness_id());
+								} else if (br.get(i).getReview().getStars() < br
+										.get(j).getReview().getStars()) {
+									pp.setMorePreferredBI(br.get(j)
+											.getBusiness().getBusiness_id());
+									pp.setLessPreferredBI(br.get(i)
+											.getBusiness().getBusiness_id());
+								} else { // Equals case
+									
+								}
 								writer.print(pp.toJSONObjectStringTwo());
 								if (i != br.size() - 2)
 									writer.print(", ");
