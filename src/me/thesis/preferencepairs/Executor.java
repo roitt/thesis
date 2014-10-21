@@ -2,6 +2,7 @@ package me.thesis.preferencepairs;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -11,11 +12,17 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathExpressionException;
+
+import me.thesis.preferencepairs.alchemy.AlchemyAPI;
 import me.thesis.preferencepairs.beans.Business;
 import me.thesis.preferencepairs.beans.BusinessAndReview;
 import me.thesis.preferencepairs.beans.PreferencePair;
 import me.thesis.preferencepairs.beans.Review;
 import me.thesis.preferencepairs.beans.User;
+
+import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -26,12 +33,18 @@ public class Executor {
 	private static HashMap<String, Business> businesses = new HashMap<String, Business>();
 	private static ArrayList<Review> reviews = new ArrayList<Review>();
 	private static HashMap<String, User> users = new HashMap<String, User>();
+	static AlchemyAPI alchemyObj;
 
 	// private static HashMap<String, ArrayList<PreferencePair>> gpairs = new
 	// HashMap<String, ArrayList<PreferencePair>>();
 
-	public static void main(String[] args) throws IOException {
-		// TODO Auto-generated method stub
+	public static void main(String[] args) throws FileNotFoundException,
+			IOException, XPathExpressionException, SAXException,
+			ParserConfigurationException {
+
+		alchemyObj = AlchemyAPI
+				.GetInstanceFromFile("../../alchemyapi_java/testdir/api_key.txt");
+
 		File businessFile = new File(
 				"/Users/bearcatmobile/Desktop/Thesis/Data Sets/yelp-dataset/yelp_academic_dataset_business.json");
 		File userFile = new File(
@@ -143,7 +156,9 @@ public class Executor {
 	}
 
 	@SuppressWarnings("rawtypes")
-	public static void createJSONPreferencePairs() {
+	public static void createJSONPreferencePairs()
+			throws XPathExpressionException, SAXException,
+			ParserConfigurationException {
 		Iterator it = users.entrySet().iterator();
 		ArrayList<BusinessAndReview> br;
 		while (it.hasNext()) {
@@ -182,7 +197,42 @@ public class Executor {
 									pp.setLessPreferredBI(br.get(i)
 											.getBusiness().getBusiness_id());
 								} else { // Equals case
-									
+									int random = (int) Math.round((Math
+											.random() * 1));
+									if(random == 0) {
+										pp.setMorePreferredBI(br.get(i)
+												.getBusiness().getBusiness_id());
+										pp.setLessPreferredBI(br.get(j)
+												.getBusiness().getBusiness_id());
+									} else {
+										pp.setMorePreferredBI(br.get(j)
+												.getBusiness().getBusiness_id());
+										pp.setLessPreferredBI(br.get(i)
+												.getBusiness().getBusiness_id());
+									}
+										
+									// Code for sentiment analysis
+									// String iReview = br.get(i).getReview()
+									// .getText().toString().trim();
+									// String jReview = br.get(j).getReview()
+									// .getText().toString().trim();
+									//
+									// double iScore =
+									// getSentimentScoreForString(iReview);
+									// double jScore =
+									// getSentimentScoreForString(jReview);
+									//
+									// if (iScore >= jScore) {
+									// pp.setMorePreferredBI(br.get(i)
+									// .getBusiness().getBusiness_id());
+									// pp.setLessPreferredBI(br.get(j)
+									// .getBusiness().getBusiness_id());
+									// } else {
+									// pp.setMorePreferredBI(br.get(j)
+									// .getBusiness().getBusiness_id());
+									// pp.setLessPreferredBI(br.get(i)
+									// .getBusiness().getBusiness_id());
+									// }
 								}
 								writer.print(pp.toJSONObjectStringTwo());
 								if (i != br.size() - 2)
@@ -282,4 +332,45 @@ public class Executor {
 		System.out.println("Businesses: " + businesses.size());
 		System.out.println("Reviews: " + reviews.size());
 	}
+
+	// utility method
+	// private static String getStringFromDocument(Document doc) {
+	// try {
+	// DOMSource domSource = new DOMSource(doc);
+	// StringWriter writer = new StringWriter();
+	// StreamResult result = new StreamResult(writer);
+	//
+	// TransformerFactory tf = TransformerFactory.newInstance();
+	// Transformer transformer = tf.newTransformer();
+	// transformer.transform(domSource, result);
+	//
+	// return writer.toString();
+	// } catch (TransformerException ex) {
+	// ex.printStackTrace();
+	// return null;
+	// }
+	// }
+
+	// private static double getSentimentScoreForString(String sString)
+	// throws XPathExpressionException, IOException, SAXException,
+	// ParserConfigurationException {
+	// // Extract sentiment for a text string.
+	// Document doc = alchemyObj.TextGetTextSentiment(sString);
+	// String xml = getStringFromDocument(doc);
+	//
+	// XPathFactory xpathFactory = XPathFactory.newInstance();
+	// XPath xpath = xpathFactory.newXPath();
+	//
+	// InputSource source = new InputSource(new StringReader(xml));
+	// String status = xpath.evaluate("/results/status", source);
+	// double score = 0;
+	// if (status.equals("OK")) {
+	// InputSource sourceScore = new InputSource(new StringReader(xml));
+	// String sScore = xpath.evaluate("/results/docSentiment/score",
+	// sourceScore);
+	// if (sScore != null && sScore != "")
+	// score = Double.valueOf(sScore);
+	// }
+	// return score;
+	// }
 }
