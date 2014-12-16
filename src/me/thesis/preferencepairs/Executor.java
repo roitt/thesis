@@ -4,10 +4,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -25,6 +27,7 @@ import me.thesis.preferencepairs.beans.User;
 import org.xml.sax.SAXException;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -34,6 +37,7 @@ public class Executor {
 	private static ArrayList<Review> reviews = new ArrayList<Review>();
 	private static HashMap<String, User> users = new HashMap<String, User>();
 	static AlchemyAPI alchemyObj;
+	static ArrayList<String> plusFriendsIds = new ArrayList<String>();
 
 	// private static HashMap<String, ArrayList<PreferencePair>> gpairs = new
 	// HashMap<String, ArrayList<PreferencePair>>();
@@ -42,46 +46,146 @@ public class Executor {
 			IOException, XPathExpressionException, SAXException,
 			ParserConfigurationException {
 
-		alchemyObj = AlchemyAPI
-				.GetInstanceFromFile("../../alchemyapi_java/testdir/api_key.txt");
-
-		File businessFile = new File(
-				"/Users/bearcatmobile/Desktop/Thesis/Data Sets/yelp-dataset/yelp_academic_dataset_business.json");
+		// alchemyObj = AlchemyAPI
+		// .GetInstanceFromFile("../../alchemyapi_java/testdir/api_key.txt");
+		//
+		// File businessFile = new File(
+		// "/Users/bearcatmobile/Desktop/Thesis/Data Sets/yelp-dataset/yelp_academic_dataset_business.json");
 		File userFile = new File(
 				"/Users/bearcatmobile/Desktop/Thesis/Data Sets/yelp-dataset/yelp_academic_dataset_user.json");
-		File reviewFile = new File(
-				"/Users/bearcatmobile/Desktop/Thesis/Data Sets/yelp-dataset/yelp_academic_dataset_review.json");
-
-		System.out.println("Parsing data ...");
-
-		parseBusinessJSON(businessFile);
-		parseReviewJSON(reviewFile);
+		// File reviewFile = new File(
+		// "/Users/bearcatmobile/Desktop/Thesis/Data Sets/yelp-dataset/yelp_academic_dataset_review.json");
+		//
+		// System.out.println("Parsing data ...");
+		//
+		// parseBusinessJSON(businessFile);
+		// parseReviewJSON(reviewFile);
 		parseUserJSON(userFile);
-
-		System.out.println("Done gathering data.");
-		// printSize(users, businesses, reviews);
-
-		System.out.println("Getting reviewed businesses for every user ...");
-
-		// For each user get all businesses he/she reviewed
-		getReviewedBusinessesForEveryUser();
-		// printUserReviewAndBusiness();
-		// reviews.clear();
-		// businesses.clear();
-
-		System.out.println("Done");
-
-		// System.out.println("Creating preference pairs ...");
-		// For each user create pairs of businesses he/she reviewed
-		// createPairs();
+		//
+		// System.out.println("Done gathering data.");
+		// // printSize(users, businesses, reviews);
+		//
+		// System.out.println("Getting reviewed businesses for every user ...");
+		//
+		// // For each user get all businesses he/she reviewed
+		// getReviewedBusinessesForEveryUser();
+		// // printUserReviewAndBusiness();
+		// // reviews.clear();
+		// // businesses.clear();
+		//
+		// System.out.println("Done");
+		//
+		// // System.out.println("Creating preference pairs ...");
+		// // For each user create pairs of businesses he/she reviewed
+		// // createPairs();
+		// // System.out.println("Done.");
+		// // Print preference pairs
+		// // printPreferencePairs();
+		// // createJSONFromUserObjects();
+		//
+		// System.out.println("Creating preference pairs for each user ...");
+		// createJSONPreferencePairs();
 		// System.out.println("Done.");
-		// Print preference pairs
-		// printPreferencePairs();
-		// createJSONFromUserObjects();
 
-		System.out.println("Creating preference pairs for each user ...");
-		createJSONPreferencePairs();
-		System.out.println("Done.");
+		// Create s CSV file for a preference pair JSON
+		String currentUserId = "61HlVi4obZXwOJzCvZuqzw";
+		plusFriendsIds.add(currentUserId);
+		addFriendsToList(currentUserId);
+
+		// Now we have Ids of friends to take-care of.
+		ArrayList<PreferencePair> plusFriendsPPList = parseUserAndFriendsPPJSON(
+				plusFriendsIds, currentUserId);
+		System.out.println("Cumulative Preference Pairs gathered.");
+
+		// Run Zermelo on this list
+		runZermelo(plusFriendsPPList, plusFriendsIds);
+
+		// createCSVfromJSON(preferencePairFile);
+	}
+
+	public static void runZermelo(ArrayList<PreferencePair> ppl,
+			ArrayList<String> pfl) {
+		System.out.println("Circle size: " + pfl.size());
+		int cnr = getCumulativeReviewedBusinessCount(ppl);
+		System.out.println("Cumulative number of businesses reviewed: " + cnr);
+
+		// Start the algorithm here
+	}
+
+	public static int sumTon(ArrayList<String> pfl) {
+		int sum = 0;
+		for (String id : pfl) {
+			int iSum = 0;
+			int currentProbe = users.get(id).getReview_count();
+			for (int i = 1; i <= currentProbe - 1; i++)
+				iSum += i;
+			System.out.println(id + ":" + currentProbe + ":" + iSum);
+			sum += iSum;
+		}
+		return sum;
+	}
+
+	public static int getCumulativeReviewedBusinessCount(
+			ArrayList<PreferencePair> ppl) {
+		HashSet<String> uniqueBusinessesReviewed = new HashSet<String>();
+		for (PreferencePair pp : ppl) {
+			uniqueBusinessesReviewed.add(pp.getLesspreferredbi());
+			uniqueBusinessesReviewed.add(pp.getMorepreferredbi());
+		}
+		return uniqueBusinessesReviewed.size();
+	}
+
+	public static ArrayList<PreferencePair> parseUserAndFriendsPPJSON(
+			ArrayList<String> pfis, String ci) throws IOException {
+		ArrayList<PreferencePair> ppl = new ArrayList<PreferencePair>();
+		for (String pfi : pfis) {
+			File preferencePairFile = new File(
+					"/Users/bearcatmobile/Desktop/Preference_Pairs/" + pfi
+							+ ".json");
+
+			BufferedReader br = new BufferedReader(new FileReader(
+					preferencePairFile));
+
+			String line = null;
+			while ((line = br.readLine()) != null) {
+				PreferencePair pp = mapper
+						.readValue(line, PreferencePair.class);
+				ppl.add(pp);
+			}
+			br.close();
+		}
+		return ppl;
+	}
+
+	public static void addFriendsToList(String cUserId) {
+		User cUser = users.get(cUserId);
+		String[] friends = cUser.getFriends();
+		for (String f : friends)
+			plusFriendsIds.add(f);
+	}
+
+	public static double getLogLikelihood() {
+		return 0;
+	}
+
+	public static void createCSVfromJSON(File file) throws JsonParseException,
+			JsonMappingException, IOException {
+		BufferedReader br = new BufferedReader(new FileReader(file));
+		FileWriter fw = new FileWriter(
+				"/Users/bearcatmobile/Desktop/CSV/61HlVi4obZXwOJzCvZuqzwQ.csv");
+		fw.append("Source;Target;Label");
+		fw.append("\n");
+		String line = null;
+		while ((line = br.readLine()) != null) {
+			PreferencePair pp = mapper.readValue(line, PreferencePair.class);
+			fw.append(pp.getLesspreferredbi().toString() + ";");
+			fw.append(pp.getMorepreferredbi().toString() + ";");
+			fw.append(((User) users.get(pp.getUserid())).getName());
+			fw.append("\n");
+		}
+		br.close();
+		fw.flush();
+		fw.close();
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -168,49 +272,48 @@ public class Executor {
 				PrintWriter writer = new PrintWriter(
 						"/Users/bearcatmobile/Desktop/Preference_Pairs/"
 								+ user.getUser_id() + ".json", "UTF-8");
-				writer.print("[");
 				// Get reviewed businesses
 				br = user.getReviewedBusinesses();
 
 				if (br.size() > 0) {
 					if (br.size() == 1) {
 						PreferencePair pp = new PreferencePair();
-						pp.setUserId(user.getUser_id());
-						pp.setMorePreferredBI(br.get(0).getBusiness()
+						pp.setUserid(user.getUser_id());
+						pp.setMorepreferredbi(br.get(0).getBusiness()
 								.getBusiness_id());
 						writer.print(pp.toJSONObjectStringOne());
 					} else {
 						for (int i = 0; i < br.size() - 1; i++) {
 							for (int j = i + 1; j < br.size(); j++) {
 								PreferencePair pp = new PreferencePair();
-								pp.setUserId(user.getUser_id());
+								pp.setUserid(user.getUser_id());
 								if (br.get(i).getReview().getStars() > br
 										.get(j).getReview().getStars()) {
-									pp.setMorePreferredBI(br.get(i)
+									pp.setMorepreferredbi(br.get(i)
 											.getBusiness().getBusiness_id());
-									pp.setLessPreferredBI(br.get(j)
+									pp.setLesspreferredbi(br.get(j)
 											.getBusiness().getBusiness_id());
 								} else if (br.get(i).getReview().getStars() < br
 										.get(j).getReview().getStars()) {
-									pp.setMorePreferredBI(br.get(j)
+									pp.setMorepreferredbi(br.get(j)
 											.getBusiness().getBusiness_id());
-									pp.setLessPreferredBI(br.get(i)
+									pp.setLesspreferredbi(br.get(i)
 											.getBusiness().getBusiness_id());
 								} else { // Equals case
 									int random = (int) Math.round((Math
 											.random() * 1));
-									if(random == 0) {
-										pp.setMorePreferredBI(br.get(i)
+									if (random == 0) {
+										pp.setMorepreferredbi(br.get(i)
 												.getBusiness().getBusiness_id());
-										pp.setLessPreferredBI(br.get(j)
+										pp.setLesspreferredbi(br.get(j)
 												.getBusiness().getBusiness_id());
 									} else {
-										pp.setMorePreferredBI(br.get(j)
+										pp.setMorepreferredbi(br.get(j)
 												.getBusiness().getBusiness_id());
-										pp.setLessPreferredBI(br.get(i)
+										pp.setLesspreferredbi(br.get(i)
 												.getBusiness().getBusiness_id());
 									}
-										
+
 									// Code for sentiment analysis
 									// String iReview = br.get(i).getReview()
 									// .getText().toString().trim();
@@ -223,26 +326,23 @@ public class Executor {
 									// getSentimentScoreForString(jReview);
 									//
 									// if (iScore >= jScore) {
-									// pp.setMorePreferredBI(br.get(i)
+									// pp.setMorepreferredbi(br.get(i)
 									// .getBusiness().getBusiness_id());
-									// pp.setLessPreferredBI(br.get(j)
+									// pp.setLesspreferredbi(br.get(j)
 									// .getBusiness().getBusiness_id());
 									// } else {
-									// pp.setMorePreferredBI(br.get(j)
+									// pp.setMorepreferredbi(br.get(j)
 									// .getBusiness().getBusiness_id());
-									// pp.setLessPreferredBI(br.get(i)
+									// pp.setLesspreferredbi(br.get(i)
 									// .getBusiness().getBusiness_id());
 									// }
 								}
 								writer.print(pp.toJSONObjectStringTwo());
-								if (i != br.size() - 2)
-									writer.print(", ");
+								writer.print("\n");
 							}
 						}
 					}
 				}
-
-				writer.print("]");
 				writer.close();
 			} catch (IOException ex) {
 				ex.printStackTrace();

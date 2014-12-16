@@ -1,42 +1,42 @@
 package me.thesis.preferencepairs.beans;
 
 public class PreferencePair {
-	private String userId;
-	private String morePreferredBI;
-	private String lessPreferredBI;
+	private String userid;
+	private String morepreferredbi;
+	private String lesspreferredbi;
 
-	public String getUserId() {
-		return userId;
+	public String getUserid() {
+		return userid;
 	}
 
-	public void setUserId(String userId) {
-		this.userId = userId;
+	public void setUserid(String userid) {
+		this.userid = userid;
 	}
 
-	public String getMorePreferredBI() {
-		return morePreferredBI;
+	public String getMorepreferredbi() {
+		return morepreferredbi;
 	}
 
-	public void setMorePreferredBI(String morePreferredBI) {
-		this.morePreferredBI = morePreferredBI;
+	public void setMorepreferredbi(String morepreferredbi) {
+		this.morepreferredbi = morepreferredbi;
 	}
 
-	public String getLessPreferredBI() {
-		return lessPreferredBI;
+	public String getLesspreferredbi() {
+		return lesspreferredbi;
 	}
-	
-	public void setLessPreferredBI(String lessPreferredBI) {
-		this.lessPreferredBI = lessPreferredBI;
+
+	public void setLesspreferredbi(String lesspreferredbi) {
+		this.lesspreferredbi = lesspreferredbi;
 	}
 
 	public String toJSONObjectStringOne() {
-		return new String("{" + "\"userid\" : \"" + userId + "\", " + "\"morepreferredbi\" : \""
-				+ morePreferredBI + "\"}");
+		return new String("{" + "\"userid\" : \"" + userid + "\", "
+				+ "\"morepreferredbi\" : \"" + morepreferredbi + "\"}");
 	}
 
 	public String toJSONObjectStringTwo() {
-		return new String("{" + "\"userid\" : \"" + userId + "\", " + "\"morepreferredbi\" : \""
-				+ morePreferredBI + "\", " + "\"lesspreferredbi\" : \"" + lessPreferredBI
-				+ "\"}");
+		return new String("{" + "\"userid\" : \"" + userid + "\", "
+				+ "\"morepreferredbi\" : \"" + morepreferredbi + "\", "
+				+ "\"lesspreferredbi\" : \"" + lesspreferredbi + "\"}");
 	}
 }

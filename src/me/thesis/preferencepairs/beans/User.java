@@ -18,7 +18,7 @@ public class User {
 	private int fans;
 	private ArrayList<BusinessAndReview> reviewedBusinesses = new ArrayList<BusinessAndReview>();
 	private ArrayList<PreferencePair> preferencePairs = new ArrayList<PreferencePair>();
-
+	
 	public ArrayList<PreferencePair> getPreferencePairs() {
 		return preferencePairs;
 	}
