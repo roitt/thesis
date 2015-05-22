@@ -39,9 +39,9 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Executor {
-	private static final String BUSINESS_DATASET_PATH = "/Users/rbhoompally/Desktop/Thesis/Data Sets/yelp_phoenix_dataset/yelp_academic_dataset_business.json";
-	private static final String USER_DATASET_PATH = "/Users/rbhoompally/Desktop/Thesis/Data Sets/yelp_phoenix_dataset/yelp_academic_dataset_user.json";
-	private static final String REVIEW_DATASET_PATH = "/Users/rbhoompally/Desktop/Thesis/Data Sets/yelp_phoenix_dataset/yelp_academic_dataset_review.json";
+	private static final String BUSINESS_DATASET_PATH = "/Users/rbhoompally/Desktop/Thesis/Data Sets/yelp-dataset/yelp_academic_dataset_business.json";
+	private static final String USER_DATASET_PATH = "/Users/rbhoompally/Desktop/Thesis/Data Sets/yelp-dataset/yelp_academic_dataset_user.json";
+	private static final String REVIEW_DATASET_PATH = "/Users/rbhoompally/Desktop/Thesis/Data Sets/yelp-dataset/yelp_academic_dataset_review.json";
 
 	private static final String CATEGORY_RESTAURANT = "Restaurants";
 
@@ -79,7 +79,7 @@ public class Executor {
 		parseYelpDataFiles();
 		
 		/* Pick a random sample of 10 users from all our users */
-		while (userIdRandomSample.size() < 2) {
+		while (userIdRandomSample.size() < 10) {
 			int totalUsers = users.size();
 			int randomPick = (int) (Math.random() * totalUsers);
 			String candidate = allUserIds.get(randomPick);
@@ -146,10 +146,11 @@ public class Executor {
 
 		/* Print the output with business names */
 		printClean(preferredBusinesses);
-		printUserVisitedRestaurants(userIdSample);
+		printUserVisitedRestaurants(userIdSample, preferredBusinesses);
 	}
 	
-	private static void printUserVisitedRestaurants(String userId) {
+	private static void printUserVisitedRestaurants
+	(String userId, ArrayList<BusinessPreference> recommendations) throws IOException {
 		System.out.println("------------Businesses visited by the user---------------");
 		User user = users.get(userId);
 		if(user == null) {
@@ -157,9 +158,22 @@ public class Executor {
 			return;
 		}
 		int count = 1;
-		for (BusinessAndReview b: user.getReviewedBusinesses()) {
-			System.out.println(count++ + ". " + b.getBusiness().getName());
+		List<String> urbs = getUserReviewedBusinesses(userId);
+		for (String b: urbs) {
+			System.out.println(count++ + ". " + businesses.get(b).getName());
 		}
+		
+		/* Find commonality */
+		System.out.println("----------------Commonality----------------");
+		int commonality = 0;
+		for (int i = 0; i < recommendations.size(); i++) {
+			BusinessPreference bp = recommendations.get(i);
+			if (urbs.contains(bp.getBusinessId())) {
+				System.out.println(i + ". " + businesses.get(bp.getBusinessId()).getName() + " (" + bp.getBusinessId() + ")");
+				commonality++;
+			}
+		}
+		System.out.println("Total : " + commonality);
 	}
 
 	private static void parseYelpDataFiles() throws IOException {
@@ -404,7 +418,7 @@ public class Executor {
 		ArrayList<PreferencePair> ppl = new ArrayList<PreferencePair>();
 		for (String pfi : pfis) {
 			File preferencePairFile = new File(
-					"/Users/rbhoompally/Desktop/Preference_Pairs_Restaurants/"
+					"/Users/rbhoompally/Desktop/Preference_Pairs_Restaurants_All/"
 							+ pfi + ".json");
 
 			BufferedReader br = new BufferedReader(new FileReader(
@@ -423,6 +437,36 @@ public class Executor {
 			createCSVfromJSON(preferencePairFile, ci);
 		}
 		return ppl;
+	}
+	
+	public static List<String> getUserReviewedBusinesses(String userId) throws IOException {
+		File preferencePairFile = new File(
+				"/Users/rbhoompally/Desktop/Preference_Pairs_Restaurants_All/"
+						+ userId + ".json");
+		
+		BufferedReader br = new BufferedReader(new FileReader(
+				preferencePairFile));
+
+		List<String> reviewedBusinesses = new ArrayList<>();
+		String line = null;
+		while ((line = br.readLine()) != null) {
+			PreferencePair pp = mapper
+					.readValue(line, PreferencePair.class);
+			if (pp.getLesspreferredbi() != null) {
+				if (!reviewedBusinesses.contains(pp.getLesspreferredbi())) {
+					reviewedBusinesses.add(pp.getLesspreferredbi());
+				}
+			}
+			
+			if (pp.getMorepreferredbi() != null) {
+				if (!reviewedBusinesses.contains(pp.getMorepreferredbi())) {
+					reviewedBusinesses.add(pp.getMorepreferredbi());
+				}
+			}
+		}
+		br.close();
+		
+		return reviewedBusinesses;
 	}
 
 	public static void addFriendsToList(String cUserId) {
@@ -458,9 +502,9 @@ public class Executor {
 			PreferencePair pp = mapper.readValue(line, PreferencePair.class);
 			if (pp.getLesspreferredbi() != null
 					&& pp.getMorepreferredbi() != null) {
-				fw.append(businesses.get(pp.getLesspreferredbi()).getName()
+				fw.append(pp.getLesspreferredbi()
 						+ ";");
-				fw.append(businesses.get(pp.getMorepreferredbi()).getName()
+				fw.append(pp.getMorepreferredbi()
 						+ ";");
 				fw.append(((User) users.get(pp.getUserid())).getName());
 				fw.append("\n");
@@ -584,7 +628,7 @@ public class Executor {
 			User user = (User) pairs.getValue();
 			try {
 				PrintWriter writer = new PrintWriter(
-						"/Users/rbhoompally/Desktop/Preference_Pairs_Restaurants/"
+						"/Users/rbhoompally/Desktop/Preference_Pairs_Restaurants_All/"
 								+ user.getUser_id() + ".json", "UTF-8");
 				// Get reviewed businesses
 				br = user.getReviewedBusinesses();
