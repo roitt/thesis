@@ -39,9 +39,9 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Executor {
-	private static final String BUSINESS_DATASET_PATH = "/Users/rbhoompally/Desktop/Thesis/Data Sets/yelp-dataset/yelp_academic_dataset_business.json";
-	private static final String USER_DATASET_PATH = "/Users/rbhoompally/Desktop/Thesis/Data Sets/yelp-dataset/yelp_academic_dataset_user.json";
-	private static final String REVIEW_DATASET_PATH = "/Users/rbhoompally/Desktop/Thesis/Data Sets/yelp-dataset/yelp_academic_dataset_review.json";
+	private static final String BUSINESS_DATASET_PATH = "/Users/rbhoompally/Desktop/Thesis/Data Sets/yelp_phoenix_dataset/yelp_academic_dataset_business.json";
+	private static final String USER_DATASET_PATH = "/Users/rbhoompally/Desktop/Thesis/Data Sets/yelp_phoenix_dataset/yelp_academic_dataset_user.json";
+	private static final String REVIEW_DATASET_PATH = "/Users/rbhoompally/Desktop/Thesis/Data Sets/yelp_phoenix_dataset/yelp_academic_dataset_review.json";
 
 	private static final String CATEGORY_RESTAURANT = "Restaurants";
 
@@ -288,13 +288,15 @@ public class Executor {
 
 		// Run until converges
 		double epsilon = 0.01;
+		int iterations = 0;
 		while (true) {
 			gammaArray = EZUpdate(winMatrix, gammaArray);
 			double newlikelihood = getLogLikelihood(winMatrix, gammaArray);
 			// System.out.println(likelihood);
-			if (Math.abs(newlikelihood - likelihood) < epsilon)
+			if (Math.abs(newlikelihood - likelihood) < epsilon || iterations > 100)
 				break;
 			likelihood = newlikelihood;
+			iterations ++;
 		}
 
 		// Here we have a gamma array that rates high priority restaurants based
@@ -418,7 +420,7 @@ public class Executor {
 		ArrayList<PreferencePair> ppl = new ArrayList<PreferencePair>();
 		for (String pfi : pfis) {
 			File preferencePairFile = new File(
-					"/Users/rbhoompally/Desktop/Preference_Pairs_Restaurants_All/"
+					"/Users/rbhoompally/Desktop/Preference_Pairs_Restaurants/"
 							+ pfi + ".json");
 
 			BufferedReader br = new BufferedReader(new FileReader(
@@ -441,7 +443,7 @@ public class Executor {
 	
 	public static List<String> getUserReviewedBusinesses(String userId) throws IOException {
 		File preferencePairFile = new File(
-				"/Users/rbhoompally/Desktop/Preference_Pairs_Restaurants_All/"
+				"/Users/rbhoompally/Desktop/Preference_Pairs_Restaurants/"
 						+ userId + ".json");
 		
 		BufferedReader br = new BufferedReader(new FileReader(
@@ -628,7 +630,7 @@ public class Executor {
 			User user = (User) pairs.getValue();
 			try {
 				PrintWriter writer = new PrintWriter(
-						"/Users/rbhoompally/Desktop/Preference_Pairs_Restaurants_All/"
+						"/Users/rbhoompally/Desktop/Preference_Pairs_Restaurants/"
 								+ user.getUser_id() + ".json", "UTF-8");
 				// Get reviewed businesses
 				br = user.getReviewedBusinesses();
